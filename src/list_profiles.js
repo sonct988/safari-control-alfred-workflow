@@ -34,7 +34,11 @@ function getProfileName(windowTitle, profileWindowTitle) {
 	) {
 		end++;
 	}
-	while (end > 0 && !/\s/.test(profileWindowTitle[profileWindowTitle.length - end])) end--;
+	while (
+		end > 0 &&
+		!/\s/.test(profileWindowTitle[profileWindowTitle.length - end]) &&
+		!/\s/.test(profileWindowTitle[profileWindowTitle.length - end - 1])
+	) end--;
 
 	const nameEnd = end ? profileWindowTitle.length - end : profileWindowTitle.length;
 	let name = profileWindowTitle.slice(start, nameEnd).trim();
@@ -65,6 +69,13 @@ function readShortcut(item) {
 //   ⌘N   -> window of the first profile (p0)
 //   ⇧⌘N  -> private window, which comes right after the profile block
 function locateWindowItems(items) {
+	// In the legacy layout, the first File-menu item is the New Window
+	// submenu container. The shortcut belongs to a child, so the container
+	// itself need not expose Command-N. Recognize it before scanning shortcuts.
+	if (items.length && items[0].menus().length) {
+		return { newIdx: 0, privIdx: -1 };
+	}
+
 	let newIdx = -1;
 	let privIdx = -1;
 	for (let i = 0; i < items.length; i++) {
